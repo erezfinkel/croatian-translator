@@ -10,6 +10,15 @@ const ttsAudio = document.getElementById('tts-audio');
 // Store the last translated Croatian text
 let lastCroatianText = '';
 
+// ========== Mobile Audio Unlocker ==========
+// This tricks mobile browsers to allow audio playback later after async fetch
+function unlockMobileAudio() {
+    ttsAudio.play().then(() => {
+        ttsAudio.pause();
+        ttsAudio.currentTime = 0;
+    }).catch(e => console.log('Audio unlock touch registered'));
+}
+
 // ========== TTS: Multiple fallback strategies ==========
 
 // Strategy 1: Browser SpeechSynthesis
@@ -29,16 +38,13 @@ function loadVoices() {
 if ('speechSynthesis' in window) {
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
-    // Force load on some browsers
     setTimeout(loadVoices, 500);
     setTimeout(loadVoices, 2000);
 }
 
-// Try to speak using browser synthesis - returns true if Croatian voice exists
 function trySpeechSynthesis(text) {
     if (!('speechSynthesis' in window)) return false;
     
-    // Reload voices in case they weren't ready
     if (!voicesReady) loadVoices();
     if (!croatianVoice) return false;
     
@@ -58,7 +64,6 @@ function trySpeechSynthesis(text) {
     };
     utterance.onerror = (e) => {
         console.error('SpeechSynthesis error:', e);
-        // Fall back to audio player
         tryGoogleTTS(text);
     };
 
@@ -66,7 +71,6 @@ function trySpeechSynthesis(text) {
     return true;
 }
 
-// Strategy 2: Google TTS via audio element
 function tryGoogleTTS(text) {
     const shortText = text.substring(0, 200);
     const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(shortText)}&tl=hr&total=1&idx=0&textlen=${shortText.length}&client=tw-ob`;
@@ -87,29 +91,22 @@ function tryGoogleTTS(text) {
     }
 }
 
-// Main speak function - tries all strategies
 function speakCroatian(text) {
     lastCroatianText = text;
     
-    // Show the play button regardless
     playBtn.style.display = 'flex';
     playHint.style.display = 'block';
     
-    // Try Strategy 1: SpeechSynthesis
     const synthOK = trySpeechSynthesis(text);
     
     if (synthOK) {
-        // SpeechSynthesis started (has Croatian voice). 
-        // But set a timeout to detect silent failure
         setTimeout(() => {
             if (window.speechSynthesis.speaking === false && statusText.innerText.includes('משמיע')) {
-                // It silently failed - try Google TTS
                 console.log('SpeechSynthesis silent fail, trying Google TTS');
                 tryGoogleTTS(text);
             }
         }, 2000);
     } else {
-        // No Croatian voice - go straight to Google TTS
         console.log('No Croatian voice found, trying Google TTS');
         tryGoogleTTS(text);
     }
@@ -159,12 +156,14 @@ if (SpeechRecognition) {
 // ========== Button Handlers ==========
 
 recordBtn.addEventListener('click', () => {
+    unlockMobileAudio(); // Unlock audio for mobile devices on user gesture
     if (recognition) {
         recognition.start();
     }
 });
 
 translateBtn.addEventListener('click', async () => {
+    unlockMobileAudio(); // Unlock audio for mobile devices on user gesture
     const text = hebrewTextEl.value.trim();
     if (text) {
         statusText.innerText = '⏳ מתרגם...';
@@ -177,15 +176,11 @@ translateBtn.addEventListener('click', async () => {
     }
 });
 
-// Play button - direct user tap guarantees audio will play
 playBtn.addEventListener('click', () => {
     if (!lastCroatianText) return;
     
-    // On direct tap, try SpeechSynthesis first
     const synthOK = trySpeechSynthesis(lastCroatianText);
-    
     if (!synthOK) {
-        // No Croatian voice - use Google TTS via audio (direct tap = allowed to play)
         tryGoogleTTS(lastCroatianText);
     }
 });
@@ -201,7 +196,6 @@ async function translateAndSpeak(text) {
             const croatianText = data[0].map(segment => segment[0]).join('');
             croatianTextEl.innerText = croatianText;
             
-            // Auto-speak the translation
             speakCroatian(croatianText);
         } else {
             throw new Error('Translation failed');
