@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>מתרגם קרואטית</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>דוברדאן 🇭🇷</h1>
+            <p>המתרגם האישי למשפחה</p>
+        </header>
+        
+        <main>
+            <div class="card hebrew-card">
+                <h2>עברית 🇮🇱</h2>
+                <textarea id="hebrew-text" class="text-box input-box" placeholder="לחץ על המיקרופון או הקלד טקסט כאן..."></textarea>
+                <button id="translate-btn" class="icon-btn secondary-btn" aria-label="תרגם">
+                    <i class="fas fa-language"></i> תרגם
+                </button>
+            </div>
+            
+            <button id="record-btn" class="main-btn" aria-label="הקלט">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <p id="status-text">מוכן להקלטה</p>
+            
+            <div class="card croatian-card">
+                <h2>קרואטית 🇭🇷</h2>
+                <div id="croatian-text" class="text-box">התרגום יופיע כאן...</div>
+                <audio id="tts-audio" playsinline></audio>
+                <button id="play-btn" class="main-btn play-main-btn" style="display:none;" aria-label="השמע בקרואטית">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <p id="play-hint" style="display:none; text-align:center; color:#888; font-size:0.9rem;">לחץ כדי לשמוע בקרואטית</p>
+            </div>
+        </main>
+    </div>
+    <script src="script.js?v=4"></script>
+</body>
+</html>
